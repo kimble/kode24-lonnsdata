@@ -154,9 +154,10 @@ view(
 
 Etter ca. 10 år ser det ut som de fleste kan gi opp tanken på å gå særlig opp i lønn.
 
-Legg merke til det samle spredningen i lønn for de med 22 års erfaring. Kan det virkelig være sant at lønna til de som gikk ut av
-skolen under finanskræsjet knyttet til [dot.com boblen](https://en.wikipedia.org/wiki/Stock_market_downturn_of_2002) **fortsatt** er påvirket av dette? De som gikk ut i jobb noen
-år før og etter (spesielt før...) bobla sprakk rapporterer betydelig høyere lønn i dag godt over tjue år senere.
+Legg merke til det smale spredningen i lønn rapportert av de med 22 års erfaring. Kan det hende at lønna til de som gikk ut av
+skolen under finanskræsjet knyttet til [Stock market downturn of 2002](https://en.wikipedia.org/wiki/Stock_market_downturn_of_2002) 
+**fortsatt** er påvirket av dette? De som gikk ut i jobb noen år før og etter (spesielt før...) bobla sprakk rapporterer betydelig 
+høyere lønn i dag godt over tjue år senere.
 
 Dersom du bruker filter på toppen av siden til å kun vise "ledelse/administrativt" ser vi at det ikke
 er noen med 22 års erfaring i datasettet som har rapportert lønn. Dårlig jobbmarked for mellomledere etter 
