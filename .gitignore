@@ -1,5 +1,6 @@
 .DS_Store
 dist/
+.idea
 docs/.observablehq/cache/
 node_modules/
 yarn-error.log
