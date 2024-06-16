@@ -142,6 +142,7 @@ view(
             marks: [
                 Plot.ruleY([0]),
                 Plot.areaY(salarySummary, { x: "experience", y1: "p5", y2: "p95", fill: "lightgray", "curve": "natural" }),
+                Plot.line(salarySummary, {x: "experience", y: "median", curve: "natural", strokeDasharray: "3", stroke: "gray", opacity: 0.3}),
                 Plot.dot(filteredData, {x: "experience", y: "salary", opacity: 0.7})
             ]
         })
