@@ -123,10 +123,29 @@ view(
 );
 ```
 
+## Spredning i rapportert lønn etter arbeidserfaring 
+
+Det høres rett ut at spredningen i rapportert lønn er minst i starten av karrieren. Er vel få arbeidsgivere som har
+lyst til å bla opp store penger før de har fått erfare hvor produktiv en person er. 
 
 ```js
-
+view(
+    resize((w) => {
+        return Plot.plot({
+            fy: {
+                grid: true,
+                reverse: false,
+                label: "Års erfaring"
+            },
+            x: {label: "Lønn →"},
+            marks: [
+                Plot.boxX(filteredData, {x: "salary", fy: "experience"})
+            ]
+        })
+    })
+);
 ```
+
 
 ```js
 
