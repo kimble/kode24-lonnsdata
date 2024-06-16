@@ -1,115 +1,198 @@
----
-toc: false
----
+Kode24 lønn - 2024
+==================
 
-<style>
+Tester [Observable framework](https://observablehq.com/framework/) for visualisering 
+av [Kode24 sin lønnsdata for 2024](https://www.kode24.no/artikkel/her-er-lonnstallene-for-norske-utviklere-2024/81507953).
 
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: var(--sans-serif);
-  margin: 4rem 0 8rem;
-  text-wrap: balance;
-  text-align: center;
-}
 
-.hero h1 {
-  margin: 2rem 0;
-  max-width: none;
-  font-size: 14vw;
-  font-weight: 900;
-  line-height: 1;
-  background: linear-gradient(30deg, var(--theme-foreground-focus), currentColor);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+## Antagelser / tweaking
 
-.hero h2 {
-  margin: 0;
-  max-width: 34em;
-  font-size: 20px;
-  font-style: initial;
-  font-weight: 500;
-  line-height: 1.5;
-  color: var(--theme-foreground-muted);
-}
+Jeg har sikkert gjort flere antagelser uten å være klar over det, men her er de antagelsene jeg bevisst har gjort.
 
-@media (min-width: 640px) {
-  .hero h1 {
-    font-size: 90px;
-  }
-}
-
-</style>
-
-<div class="hero">
-  <h1>Hello, Observable Framework</h1>
-  <h2>Welcome to your new project! Edit&nbsp;<code style="font-size: 90%;">docs/index.md</code> to change this page.</h2>
-  <a href="https://observablehq.com/framework/getting-started" target="_blank">Get started<span style="display: inline-block; margin-left: 0.25rem;">↗︎</span></a>
-</div>
-
-<div class="grid grid-cols-2" style="grid-auto-rows: 504px;">
-  <div class="card">${
-    resize((width) => Plot.plot({
-      title: "Your awesomeness over time 🚀",
-      subtitle: "Up and to the right!",
-      width,
-      y: {grid: true, label: "Awesomeness"},
-      marks: [
-        Plot.ruleY([0]),
-        Plot.lineY(aapl, {x: "Date", y: "Close", tip: true})
-      ]
-    }))
-  }</div>
-  <div class="card">${
-    resize((width) => Plot.plot({
-      title: "How big are penguins, anyway? 🐧",
-      width,
-      grid: true,
-      x: {label: "Body mass (g)"},
-      y: {label: "Flipper length (mm)"},
-      color: {legend: true},
-      marks: [
-        Plot.linearRegressionY(penguins, {x: "body_mass_g", y: "flipper_length_mm", stroke: "species"}),
-        Plot.dot(penguins, {x: "body_mass_g", y: "flipper_length_mm", stroke: "species", tip: true})
-      ]
-    }))
-  }</div>
-</div>
+1. Det er veldig få datapunkter for de med > 30 års erfaring. Alle som rapportert mer enn 30 års erfaring slår jeg sammen. 30 i grafene under er altså 30+.
+2. Antar at folk har tolket "utdanning" forskjellig. Det ser ut som det varierer veldig mye om folk har telt med grunnskole eller ikke. Jeg klassifiserer de som har rapportert 3 års utdanning som bachelor og de med 5 som master.
+3. Jeg har forkortet en del lange navn.
 
 ```js
-const aapl = FileAttachment("aapl.csv").csv({typed: true});
-const penguins = FileAttachment("penguins.csv").csv({typed: true});
+
+const simplifyGender = (g) => g === "annet / ønsker ikke oppgi" ? "annet/ukjent" : g;
+const simplifyTopic = (g) => g === "AI / maskinlæring" ? "ai/ml" : g === "embedded / IOT / maskinvare" ? "IOT" : g;
+
+const workbook = await FileAttachment("data/lonnstall-2024.xlsx").xlsx();
+const rawData = workbook.sheet("Form1", {range: "A:H", headers: true});
+
+const uniqueSituations = [...new Set([...rawData.flatMap((d) => d["arbeidssituasjon"].split(", "))])].map((s) => s === "frilans / selvstendig næringsdrivende" ? "frilans" : s).map(s => s === "offentlig/kommunal sektor" ? "offentlig" : s)
+const uniquePlaces = [...new Set([...rawData.flatMap((d) => d["arbeidssted"].split(", "))])];
+const uniqueTopics = [...new Set([...rawData.flatMap((d) => d["fag"].split(", "))])].map(simplifyTopic);
+const uniqueGenders = [...new Set([...rawData.flatMap((d) => d["kjønn"].split(", "))])].map(simplifyGender);
+
+const data = rawData.map((d) => {
+    const copy = {
+        "gender": simplifyGender(d["kjønn"]),
+        "topic": simplifyTopic(d["fag"]),
+        "place": d["arbeidssted"],
+        "education": d["utdanning"],
+        "experience": d["erfaring"] < 30 ? d["erfaring"] : 30,
+        "salary": d["lønn"],
+        "bonus": d["bonus?"],
+    };
+
+    uniqueSituations.forEach((s) => copy[s] = d["arbeidssituasjon"].indexOf(s) > -1 ? "Ja" : "Nei");
+
+    if (d["arbeidssituasjon"].indexOf("offentlig") > -1) {
+        copy["sector"] = "public";
+    } else if (d["arbeidssituasjon"].indexOf("privat") > -1) {
+        copy["sector"] = "private";
+    } else {
+        copy["sector"] = "n/a";
+    }
+    
+    if (copy["education"] === 3) {
+        copy["grade"] = "bachelor";
+    } else if (copy["education"] === 5) {
+        copy["grade"] = "master";
+    } else {
+        copy["grade"] = "n/a"
+    }
+
+    return copy;
+});
 ```
 
----
+## Filtrer på arbeidssted
 
-## Next steps
+```js
+const selectedPlaces = view(
+    Inputs.checkbox(uniquePlaces, {sort: true, unique: true, value: uniquePlaces})
+);
+```
 
-Here are some ideas of things you could try…
+## Filtrer på fag
 
-<div class="grid grid-cols-4">
-  <div class="card">
-    Chart your own data using <a href="https://observablehq.com/framework/lib/plot"><code>Plot</code></a> and <a href="https://observablehq.com/framework/javascript/files"><code>FileAttachment</code></a>. Make it responsive using <a href="https://observablehq.com/framework/javascript/display#responsive-display"><code>resize</code></a>.
-  </div>
-  <div class="card">
-    Create a <a href="https://observablehq.com/framework/routing">new page</a> by adding a Markdown file (<code>whatever.md</code>) to the <code>docs</code> folder.
-  </div>
-  <div class="card">
-    Add a drop-down menu using <a href="https://observablehq.com/framework/javascript/inputs"><code>Inputs.select</code></a> and use it to filter the data shown in a chart.
-  </div>
-  <div class="card">
-    Write a <a href="https://observablehq.com/framework/loaders">data loader</a> that queries a local database or API, generating a data snapshot on build.
-  </div>
-  <div class="card">
-    Import a <a href="https://observablehq.com/framework/javascript/imports">recommended library</a> from npm, such as <a href="https://observablehq.com/framework/lib/leaflet">Leaflet</a>, <a href="https://observablehq.com/framework/lib/dot">GraphViz</a>, <a href="https://observablehq.com/framework/lib/tex">TeX</a>, or <a href="https://observablehq.com/framework/lib/duckdb">DuckDB</a>.
-  </div>
-  <div class="card">
-    Ask for help, or share your work or ideas, on the <a href="https://talk.observablehq.com/">Observable forum</a>.
-  </div>
-  <div class="card">
-    Visit <a href="https://github.com/observablehq/framework">Framework on GitHub</a> and give us a star. Or file an issue if you’ve found a bug!
-  </div>
-</div>
+```js
+const selectedTopics = view(
+    Inputs.checkbox(uniqueTopics, {sort: true, unique: true, value: uniqueTopics})
+);
+```
+
+## Filtrer på situasjon
+
+```js
+const selectedSituations = view(
+    Inputs.checkbox(uniqueSituations, {sort: true, unique: true, value: uniqueSituations})
+);
+```
+
+## Filtrer på kjønn
+
+```js
+const selectedGenders = view(
+    Inputs.checkbox(uniqueGenders, {sort: true, unique: true, value: uniqueGenders})
+);
+```
+
+
+## Rader som matcher filter
+
+```js
+const filteredData = data.filter((d) => {
+    return selectedPlaces.indexOf(d.place) > -1 && selectedTopics.indexOf(d.topic) > -1 && selectedSituations.some((s) => d[s] === "Ja") && selectedGenders.indexOf(d.gender) > -1
+});
+```
+
+```js
+const experienceExtent = d3.extent(filteredData, (d) => d.experience);
+const salaryExtent = d3.extent(filteredData, (d) => d.salary);
+
+const salarySummary = Array(experienceExtent[1]+1).fill(0).map((_, i) => i).map((e) => {
+    const salaries = filteredData.filter(d => d.experience === e).map(d => d.salary);
+    
+    return {
+        experience: e,
+        salaries: salaries,
+        mean: d3.mean(salaries),
+        median: d3.median(salaries),
+        p5: d3.quantile(salaries, 0.05),
+        p95: d3.quantile(salaries, 0.95),
+    }
+});
+```
+
+```js
+display(Inputs.table(filteredData, {
+    
+}));
+```
+
+
+
+## Erfaring vs. rapportert lønn 
+
+
+```js
+view(
+    resize((w) => {
+        return Plot.plot({
+            width: w,
+            marginLeft: 80,
+            inset: 10,
+            grid: true,
+            color: {
+              legend: true,
+            },
+            x: {label: "Års erfaring →"},
+            y: {label: "↑ Lønn"},
+            marks: [
+                Plot.ruleY([0]),
+                Plot.areaY(salarySummary, { x: "experience", y1: "p5", y2: "p95", fill: "lightgray", "curve": "natural" }),
+                Plot.dot(filteredData, {x: "experience", y: "salary", opacity: 0.7})
+            ]
+        })
+    })
+);
+```
+
+Etter ca. 10 år ser det ut som de fleste kan gi opp tanken på å gå særlig opp i lønn.
+
+Legg merke til det samle spredningen i lønn for de med 22 års erfaring. Kan det virkelig være sant at lønna til de som gikk ut av
+skolen under finanskræsjet knyttet til [dot.com boblen](https://en.wikipedia.org/wiki/Stock_market_downturn_of_2002) **fortsatt** er påvirket av dette? De som gikk ut i jobb noen
+år før og etter (spesielt før...) bobla sprakk rapporterer betydelig høyere lønn i dag godt over tjue år senere.
+
+Dersom du bruker filter på toppen av siden til å kun vise "ledelse/administrativt" ser vi at det ikke
+er noen med 22 års erfaring i datasettet som har rapportert lønn. Dårlig jobbmarked for mellomledere etter 
+at lufta gikk ut av bobla?
+
+Det kan også se ut som vi kan se spor av [2015-2016 stock market selloff](https://en.wikipedia.org/wiki/2015%E2%80%932016_stock_market_selloff)? 
+De som har rapportert 9 års arbeidserfaring gikk ut av skolen på den tiden. 
+
+## Spredning i rapportert lønn etter arbeidserfaring 
+
+```js
+view(
+    resize((w) => {
+        return Plot.plot({
+            fy: {
+                grid: true,
+                reverse: false,
+                label: "Års erfaring"
+            },
+            x: {label: "Lønn →"},
+            marks: [
+                Plot.boxX(filteredData, {x: "salary", fy: "experience"})
+            ]
+        })
+    })
+);
+```
+
+Det høres rett ut at spredningen i rapportert lønn er minst i starten av karrieren. Er vel få arbeidsgivere som har
+lyst til å bla opp store penger før de har fått erfare hvor produktiv en person er.
+
+
+```js
+
+```
+
+```js
+
+```
