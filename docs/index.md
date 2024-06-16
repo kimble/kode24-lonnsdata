@@ -4,6 +4,8 @@ Kode24 lønn - 2024
 Tester [Observable framework](https://observablehq.com/framework/) for visualisering 
 av [Kode24 sin lønnsdata for 2024](https://www.kode24.no/artikkel/her-er-lonnstallene-for-norske-utviklere-2024/81507953).
 
+Kildekoden ligger på [Github](https://github.com/kimble/kode24-lonnsdata).
+
 
 ## Antagelser / tweaking
 
@@ -59,40 +61,35 @@ const data = rawData.map((d) => {
 });
 ```
 
-## Filtrer på arbeidssted
+## Filtrer
+Bruk disse til å se på forskjellige utsnitt av dataen. 
 
 ```js
 const selectedPlaces = view(
-    Inputs.checkbox(uniquePlaces, {sort: true, unique: true, value: uniquePlaces})
+    Inputs.checkbox(uniquePlaces, {label: "Arbeidssted", sort: true, unique: true, value: uniquePlaces})
 );
 ```
-
-## Filtrer på fag
 
 ```js
 const selectedTopics = view(
-    Inputs.checkbox(uniqueTopics, {sort: true, unique: true, value: uniqueTopics})
+    Inputs.checkbox(uniqueTopics, {label: "Fag", sort: true, unique: true, value: uniqueTopics})
 );
 ```
-
-## Filtrer på situasjon
 
 ```js
 const selectedSituations = view(
-    Inputs.checkbox(uniqueSituations, {sort: true, unique: true, value: uniqueSituations})
+    Inputs.checkbox(uniqueSituations, {label: "Situasjon", sort: true, unique: true, value: uniqueSituations})
 );
 ```
-
-## Filtrer på kjønn
 
 ```js
 const selectedGenders = view(
-    Inputs.checkbox(uniqueGenders, {sort: true, unique: true, value: uniqueGenders})
+    Inputs.checkbox(uniqueGenders, {label: "Kjønn", sort: true, unique: true, value: uniqueGenders})
 );
 ```
 
-
-## Rader som matcher filter
+## Data som matcher filter
+Dette er de (masserte) radene som matcher det du har krysset av for ovenfor.  
 
 ```js
 const filteredData = data.filter((d) => {
