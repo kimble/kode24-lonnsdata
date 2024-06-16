@@ -76,13 +76,17 @@ const selectedGenders = view(
 ```
 
 
-Rader som matcher filter
-------------------------
+## Rader som matcher filter
 
 ```js
 const filteredData = data.filter((d) => {
     return selectedPlaces.indexOf(d.place) > -1 && selectedTopics.indexOf(d.topic) > -1 && selectedSituations.some((s) => d[s] === "Ja") && selectedGenders.indexOf(d.gender) > -1
 });
+```
+
+```js
+    const experienceExtent = d3.extent(filteredData, (d) => d.experience);
+    const salaryExtent = d3.extent(filteredData, (d) => d.salary);
 ```
 
 ```js
@@ -92,6 +96,41 @@ display(Inputs.table(filteredData, {
 ```
 
 
+
+## Erfaring vs. rapportert lønn 
+
+Etter ca. 10 år ser det ut som de fleste kan gi opp tanken på å gå særlig opp i lønn. 
+
+```js
+view(
+    resize((w) => {
+        return Plot.plot({
+            width: w,
+            marginLeft: 80,
+            inset: 10,
+            grid: true,
+            color: {
+              legend: true,
+            },
+            x: {label: "Års erfaring →"},
+            y: {label: "↑ Lønn"},
+            marks: [
+                Plot.ruleY([0]),
+                Plot.dot(filteredData, {x: "experience", y: "salary", opacity: 0.7})
+            ]
+        })
+    })
+);
+```
+
+
+```js
+
+```
+
+```js
+
+```
 
 ```js
 
