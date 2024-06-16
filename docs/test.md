@@ -67,13 +67,21 @@ const selectedSituations = view(
 );
 ```
 
+## Filtrer på kjønn
+
+```js
+const selectedGenders = view(
+    Inputs.checkbox(uniqueGenders, {sort: true, unique: true, value: uniqueGenders})
+);
+```
+
 
 Rader som matcher filter
 ------------------------
 
 ```js
 const filteredData = data.filter((d) => {
-    return selectedPlaces.indexOf(d.place) > -1 && selectedTopics.indexOf(d.topic) > -1 && selectedSituations.some((s) => d[s] === "Ja")
+    return selectedPlaces.indexOf(d.place) > -1 && selectedTopics.indexOf(d.topic) > -1 && selectedSituations.some((s) => d[s] === "Ja") && selectedGenders.indexOf(d.gender) > -1
 });
 ```
 
