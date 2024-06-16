@@ -28,12 +28,42 @@ const data = rawData.map((d) => {
     };
     
     situations.forEach((s) => copy[s] = d["arbeidssituasjon"].indexOf(s) > -1 ? "Ja" : "Nei");
+    
+    if (d["arbeidssituasjon"].indexOf("offentlig") > -1) {
+        copy["sector"] = "public";
+    } else if (d["arbeidssituasjon"].indexOf("privat") > -1) {
+        copy["sector"] = "private";
+    } else {
+        copy["sector"] = "n/a";
+    }
+    
     return copy;
 });
 ```
 
+Filters
+-------
+
+
+
 ```js
-display(Inputs.table(data, {
+const selectedPlaces = view(
+    Inputs.checkbox(places, {label: "Places", sort: true, unique: true, value: places})
+);
+```
+
+
+Table
+-----
+
+```js
+const filteredData = data.filter((d) => {
+    return selectedPlaces.indexOf(d.place) > -1;
+});
+```
+
+```js
+display(Inputs.table(filteredData, {
 
 }));
 ```
