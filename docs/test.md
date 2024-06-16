@@ -1,10 +1,14 @@
 Kode24 lønn - 2024
 ==================
 
+Tester [Observable framework](https://observablehq.com/framework/) for visualisering 
+av [Kode24 sin lønnsdata for 2024](https://www.kode24.no/artikkel/her-er-lonnstallene-for-norske-utviklere-2024/81507953).
+
+
 ```js
 
 const simplifyGender = (g) => g === "annet / ønsker ikke oppgi" ? "annet/ukjent" : g;
-const simplifyTopic = (g) => g === "AI / maskinlæring" ? "ai/ml" : g;
+const simplifyTopic = (g) => g === "AI / maskinlæring" ? "ai/ml" : g === "embedded / IOT / maskinvare" ? "IOT" : g;
 
 const workbook = await FileAttachment("data/lonnstall-2024.xlsx").xlsx();
 const rawData = workbook.sheet("Form1", {range: "A:H", headers: true});
