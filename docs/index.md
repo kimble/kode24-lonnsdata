@@ -226,11 +226,74 @@ view(
 );
 ```
 
-Som ventet ligger de med mastergrad litt over de med bachelorgrad, men hvor mange år må en med mastergrad jobbe før 
-hen tar igjen en som "bare" har tatt bachelorgrad og kommet ut i jobbmarkedet to år tidligere?
+Som ventet ligger de med mastergrad litt over de med bachelorgrad.
 
+Men hvor mange år må en med mastergrad jobbe før hen tar igjen en som "bare" har tatt bachelorgrad og kommet ut i jobbmarkedet to år tidligere? 
 
+**Obs!** Jeg er verken flink med statistikk og økonomi eller sammenligningen nedenfor har en rekke svakheter. Grafen nedenfor
+tar utgangspunkt i medianen til folk med bachelor/master og x antall års erfaring. Poenget er at man med bachelorgrad soper inn
+ish en million før skatt mens en som tar mastergrad sitter på skolebenken. Som Rema 1000 sier, det er sluttsummen på kassalappen som teller.
 
 ```js
+const masterAndBachelorExtent = d3.extent(bothSummary, (d) => d.experience);
 
+const bachelorVsMasterExperienceData = Array(masterAndBachelorExtent[1]+1).fill(0).map((_, i) => i).map((e) => {
+    return {
+        experience: e,
+        bachelorMedian: bothSummary.find((d) => d.experience === e && d.grade === "bachelor").median || bothSummary.find((d) => d.experience === e-1 && d.grade === "master").median, // Take previous if missing
+        masterMedian: bothSummary.find((d) => d.experience === e && d.grade === "master").median || bothSummary.find((d) => d.experience === e-1 && d.grade === "master").median, // Take previous if missing
+    }
+});
+
+const bachelorVsMaterCumulativeData = Array(masterAndBachelorExtent[1]+1).fill(0).map((_, i) => i).map((year) => {
+    const cumulativeBachelor = d3.sum(bachelorVsMasterExperienceData.filter(d => d.experience <= year), (d) => d.bachelorMedian);
+    const cumulativeMaster = year >= 2 ? d3.sum(bachelorVsMasterExperienceData.filter(d => d.experience <= year - 2), (d) => d.masterMedian) : 0;
+    
+    return {
+        year: year,
+        medianSalaryBachelor: bachelorVsMasterExperienceData.find(d => d.experience === year).bachelorMedian,
+        cumulativeBachelor: cumulativeBachelor,
+        medianSalaryMaster: year >= 2 ? bachelorVsMasterExperienceData.find(d => d.experience === year-2).masterMedian : 0,
+        cumulativeMaster: cumulativeMaster,
+    }
+});
+
+
+const plottableBachelorVsMaster = [
+    ...bachelorVsMaterCumulativeData.map(d => ({
+        grade: "bachelor",
+        year: d.year,
+        cumulative: d.cumulativeBachelor
+    })),
+    ...bachelorVsMaterCumulativeData.map(d => ({
+        grade: "master",
+        year: d.year,
+        cumulative: d.cumulativeMaster
+    })),
+];
+
+view(
+    resize((w) => {
+        return Plot.plot({
+            width: w,
+            marginLeft: 80,
+            inset: 10,
+            grid: true,
+            color: {
+                legend: true,
+            },
+            x: {label: "Års erfaring →"},
+            y: {label: "↑ Lønn"},
+            marks: [
+                Plot.ruleY([0]),
+                Plot.line(plottableBachelorVsMaster, {x: "year", y: "cumulative", stroke: "grade", curve: "natural"}),
+            ]
+        })
+    })
+);
+
+view(Inputs.table(bachelorVsMaterCumulativeData));
 ```
+
+Dersom man også hadde tatt hensyn til to år med ekstra studielån og to år med tapt verdistigning i boligmarkedet blir
+forskjellen naturligvis enda større i favør av å nøye seg med en bachelorgrad   . 
