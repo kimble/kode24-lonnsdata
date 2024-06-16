@@ -55,19 +55,27 @@ const selectedTopics = view(
 );
 ```
 
+## Filtrer på situasjon
+
+```js
+const selectedSituations = view(
+    Inputs.checkbox(uniqueSituations, {sort: true, unique: true, value: uniqueSituations})
+);
+```
+
 
 Rader som matcher filter
 ------------------------
 
 ```js
 const filteredData = data.filter((d) => {
-    return selectedPlaces.indexOf(d.place) > -1 && selectedTopics.indexOf(d.topic) > -1
+    return selectedPlaces.indexOf(d.place) > -1 && selectedTopics.indexOf(d.topic) > -1 && selectedSituations.some((s) => d[s] === "Ja")
 });
 ```
 
 ```js
 display(Inputs.table(filteredData, {
-
+    
 }));
 ```
 
