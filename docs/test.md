@@ -38,6 +38,14 @@ const data = rawData.map((d) => {
     } else {
         copy["sector"] = "n/a";
     }
+    
+    if (copy["education"] === 3) {
+        copy["grade"] = "bachelor";
+    } else if (copy["education"] === 5) {
+        copy["grade"] = "master";
+    } else {
+        copy["grade"] = "n/a"
+    }
 
     return copy;
 });
