@@ -5,6 +5,13 @@ Tester [Observable framework](https://observablehq.com/framework/) for visualise
 av [Kode24 sin lønnsdata for 2024](https://www.kode24.no/artikkel/her-er-lonnstallene-for-norske-utviklere-2024/81507953).
 
 
+## Antagelser / tweaking
+
+Jeg har sikkert gjort flere antagelser uten å være klar over det, men her er de antagelsene jeg bevisst har gjort.
+
+1. Det er veldig få datapunkter for de med > 30 års erfaring. Alle som rapportert mer enn 30 års erfaring slår jeg sammen. 30 i grafene under er altså 30+.
+2. Antar at folk har tolket "utdanning" forskjellig. Det ser ut som det varierer veldig mye om folk har telt med grunnskole eller ikke. Jeg klassifiserer de som har rapportert 3 års utdanning som bachelor og de med 5 som master.
+
 ```js
 
 const simplifyGender = (g) => g === "annet / ønsker ikke oppgi" ? "annet/ukjent" : g;
@@ -24,7 +31,7 @@ const data = rawData.map((d) => {
         "topic": simplifyTopic(d["fag"]),
         "place": d["arbeidssted"],
         "education": d["utdanning"],
-        "experience": d["erfaring"],
+        "experience": d["erfaring"] < 30 ? d["erfaring"] : 30,
         "salary": d["lønn"],
         "bonus": d["bonus?"],
     };
@@ -93,8 +100,21 @@ const filteredData = data.filter((d) => {
 ```
 
 ```js
-    const experienceExtent = d3.extent(filteredData, (d) => d.experience);
-    const salaryExtent = d3.extent(filteredData, (d) => d.salary);
+const experienceExtent = d3.extent(filteredData, (d) => d.experience);
+const salaryExtent = d3.extent(filteredData, (d) => d.salary);
+
+const salarySummary = Array(experienceExtent[1]+1).fill(0).map((_, i) => i).map((e) => {
+    const salaries = filteredData.filter(d => d.experience === e).map(d => d.salary);
+    
+    return {
+        experience: e,
+        salaries: salaries,
+        mean: d3.mean(salaries),
+        median: d3.median(salaries),
+        p5: d3.quantile(salaries, 0.05),
+        p95: d3.quantile(salaries, 0.95),
+    }
+});
 ```
 
 ```js
@@ -108,6 +128,10 @@ display(Inputs.table(filteredData, {
 ## Erfaring vs. rapportert lønn 
 
 Etter ca. 10 år ser det ut som de fleste kan gi opp tanken på å gå særlig opp i lønn. 
+
+Legg merke til det samle spredningen i lønn for de med 22 års erfaring. Kan det virkelig være sant at lønna til de som gikk ut av 
+skolen under finanskræsjet knyttet til [dot.com boblen](https://en.wikipedia.org/wiki/Stock_market_downturn_of_2002) fortsatt
+er påvirket av dette?
 
 ```js
 view(
@@ -124,6 +148,7 @@ view(
             y: {label: "↑ Lønn"},
             marks: [
                 Plot.ruleY([0]),
+                Plot.areaY(salarySummary, { x: "experience", y1: "p5", y2: "p95", fill: "lightgray", "curve": "natural" }),
                 Plot.dot(filteredData, {x: "experience", y: "salary", opacity: 0.7})
             ]
         })
