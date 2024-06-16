@@ -98,21 +98,25 @@ const filteredData = data.filter((d) => {
 ```
 
 ```js
-const experienceExtent = d3.extent(filteredData, (d) => d.experience);
-const salaryExtent = d3.extent(filteredData, (d) => d.salary);
 
-const salarySummary = Array(experienceExtent[1]+1).fill(0).map((_, i) => i).map((e) => {
-    const salaries = filteredData.filter(d => d.experience === e).map(d => d.salary);
-    
-    return {
-        experience: e,
-        salaries: salaries,
-        mean: d3.mean(salaries),
-        median: d3.median(salaries),
-        p5: d3.quantile(salaries, 0.05),
-        p95: d3.quantile(salaries, 0.95),
-    }
-});
+const summarize = (data, predicate) => {
+    const matchedRows = data.filter(predicate);
+    const experienceExtent = d3.extent(matchedRows, (d) => d.experience);
+
+    return Array(experienceExtent[1]+1).fill(0).map((_, i) => i).map((e) => {
+        const salaries = matchedRows.filter(d => d.experience === e).map(d => d.salary);
+
+        return {
+            experience: e,
+            salaries: salaries,
+            mean: d3.mean(salaries),
+            median: d3.median(salaries),
+            p5: d3.quantile(salaries, 0.05),
+            p95: d3.quantile(salaries, 0.95),
+        }
+    });
+} 
+
 ```
 
 ```js
@@ -127,6 +131,8 @@ display(Inputs.table(filteredData, {
 
 
 ```js
+const salarySummary = summarize(filteredData, (d) => true);
+
 view(
     resize((w) => {
         return Plot.plot({
@@ -187,6 +193,8 @@ view(
 Det høres rett ut at spredningen i rapportert lønn er minst i starten av karrieren. Er vel få arbeidsgivere som har
 lyst til å bla opp store penger før de har fått erfare hvor produktiv en person er.
 
+
+## Bachelor vs. master
 
 ```js
 
