@@ -196,9 +196,40 @@ lyst til å bla opp store penger før de har fått erfare hvor produktiv en pers
 
 ## Bachelor vs. master
 
-```js
+**Obs!** Her var det en del rariteter i datasettet, se antagelser i toppen for å se hvilke antagelser jeg har tatt. 
 
+```js
+const bachelorSummary = summarize(filteredData, (d) => d.grade === "bachelor").map((d) => ({...d, grade: "bachelor"}));
+const masterSummary = summarize(filteredData, (d) => d.grade === "master").map((d) => ({...d, grade: "master"}));
+const bothSummary = [...bachelorSummary, ...masterSummary];
+
+
+view(
+    resize((w) => {
+        return Plot.plot({
+            width: w,
+            marginLeft: 80,
+            inset: 10,
+            grid: true,
+            color: {
+                legend: true,
+            },
+            x: {label: "Års erfaring →"},
+            y: {label: "↑ Lønn"},
+            marks: [
+                Plot.ruleY([0]),
+                Plot.areaY(bothSummary, { x: "experience", y1: "p5", y2: "p95", fill: "grade", "curve": "natural", opacity: 0.5 }),
+                Plot.line(bothSummary, {x: "experience", y: "median", curve: "natural", strokeDasharray: "3", stroke: "grade"})
+            ]
+        })
+    })
+);
 ```
+
+Som ventet ligger de med mastergrad litt over de med bachelorgrad, men hvor mange år må en med mastergrad jobbe før 
+hen tar igjen en som "bare" har tatt bachelorgrad og kommet ut i jobbmarkedet to år tidligere?
+
+
 
 ```js
 
